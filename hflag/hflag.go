@@ -21,6 +21,10 @@ import (
 	"github.com/lessos/lessgo/types"
 )
 
+const (
+	Version = "0.9.0"
+)
+
 var (
 	args_kv = map[string]types.Bytex{}
 )
@@ -50,13 +54,22 @@ func init() {
 	}
 }
 
-func Value(key string) (types.Bytex, bool) {
+func ValueOK(key string) (types.Bytex, bool) {
 
 	if v, ok := args_kv[key]; ok {
 		return v, ok
 	}
 
 	return nil, false
+}
+
+func Value(key string) types.Bytex {
+
+	if v, ok := ValueOK(key); ok {
+		return v
+	}
+
+	return types.Bytex{}
 }
 
 func Each(fn func(key, val string)) {
