@@ -16,9 +16,8 @@ package hflag
 
 import (
 	"os"
+	"strconv"
 	"strings"
-
-	"github.com/lessos/lessgo/types"
 )
 
 const (
@@ -26,7 +25,7 @@ const (
 )
 
 var (
-	args_kv = map[string]types.Bytex{}
+	args = map[string]Bytex{}
 )
 
 func init() {
@@ -45,44 +44,97 @@ func init() {
 
 		if n := strings.Index(k, "="); n > 0 {
 			if n+1 < len(k) {
-				args_kv[k[:n]] = types.Bytex(k[n+1:])
+				args[k[:n]] = Bytex(k[n+1:])
 			} else {
-				args_kv[k[:n]] = types.Bytex("")
+				args[k[:n]] = Bytex("")
 			}
 			continue
 		}
 
 		if len(os.Args) <= (i+1) || os.Args[i+1][0] == '-' {
-			args_kv[k] = types.Bytex([]byte(""))
+			args[k] = Bytex([]byte(""))
 			continue
 		}
 
 		v := os.Args[i+1]
 
-		args_kv[k] = types.Bytex([]byte(v))
+		args[k] = Bytex([]byte(v))
 	}
 }
 
-func ValueOK(key string) (types.Bytex, bool) {
+func ValueOK(key string) (Bytex, bool) {
 
-	if v, ok := args_kv[key]; ok {
+	if v, ok := args[key]; ok {
 		return v, ok
 	}
 
 	return nil, false
 }
 
-func Value(key string) types.Bytex {
+func Value(key string) Bytex {
 
 	if v, ok := ValueOK(key); ok {
 		return v
 	}
 
-	return types.Bytex{}
+	return Bytex{}
 }
 
 func Each(fn func(key, val string)) {
-	for k, v := range args_kv {
+	for k, v := range args {
 		fn(k, v.String())
 	}
+}
+
+// Universal Bytes
+type Bytex []byte
+
+// Bytes converts the value-bytes to bytes
+func (bx Bytex) Bytes() []byte {
+	return bx
+}
+
+// String converts the value-bytes to string
+func (bx Bytex) String() string {
+	return string(bx)
+}
+
+// Bool converts the value-bytes to bool
+func (bx Bytex) Bool() bool {
+	if len(bx) > 0 {
+		if b, err := strconv.ParseBool(string(bx)); err == nil {
+			return b
+		}
+	}
+	return false
+}
+
+// Int64 converts the value-bytes to int64
+func (bx Bytex) Int64() int64 {
+	if len(bx) > 0 {
+		if i64, err := strconv.ParseInt(string(bx), 10, 64); err == nil {
+			return i64
+		}
+	}
+	return 0
+}
+
+// Uint64 converts the value-bytes to uint64
+func (bx Bytex) Uint64() uint64 {
+	if len(bx) > 0 {
+		if i64, err := strconv.ParseUint(string(bx), 10, 64); err == nil {
+			return i64
+		}
+	}
+	return 0
+}
+
+// Float64 converts the value-bytes to float64
+func (bx Bytex) Float64() float64 {
+	if len(bx) > 0 {
+		if f64, err := strconv.ParseFloat(string(bx), 64); err == nil {
+			return f64
+		}
+	}
+	return 0
 }
